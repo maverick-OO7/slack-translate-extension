@@ -29,3 +29,20 @@
   text-decoration: none;
   color: inherit;
 }
+
+.___sgt-translate-container {
+  margin: 4px 0;
+  padding: 8px;
+  background-color: rgba(var(--sk_primary_foreground,29,28,29),0.05);
+  border-radius: 4px;
+  border-left: 3px solid rgba(var(--sk_primary_foreground,29,28,29),0.3);
+  font-size: 0.9em;
+  line-height: 1.4;
+}
+
+.___sgt-translate-container[data-translate-done] {
+  margin: 6px 0;
+  font-size: 1em;
+  padding-left: 10px;
+  border-left: 3px solid rgba(var(--sk_primary_foreground,29,28,29),1);
+}
