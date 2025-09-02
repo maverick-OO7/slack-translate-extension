@@ -132,6 +132,8 @@ const translateLabel = document.querySelector('#translate-label')
 const translateRegex = document.querySelector('#translate-regex')
 const translateReset = document.querySelector('#translate-reset')
 const regexCard = document.querySelector('#show-regex-card')
+const autoTranslateToggle = document.querySelector('#auto-translate-toggle')
+const autoTranslateInfo = document.querySelector('#show-auto-translate-info')
 
 generateLanguageDropdown(translateFrom, 'from-')
 generateLanguageDropdown(translateTo, 'to-')
@@ -170,12 +172,19 @@ translateRegex.addEventListener('blur', (e) => {
   }
 })
 
+autoTranslateToggle.addEventListener('change', (e) => {
+  chrome.storage.sync.set({
+    autoTranslate: e.target.checked
+  })
+})
+
 translateReset.addEventListener('click', () => {
   chrome.storage.sync.set({
     translateFrom: 'auto',
     translateTo: 'en',
     translateLabel: 'View Translation',
-    translateRegex: ''
+    translateRegex: '',
+    autoTranslate: false
   }, () => {
     window.location.reload()
   })
@@ -186,15 +195,22 @@ regexCard.addEventListener('click', (e) => {
   e.target.remove()
 })
 
+autoTranslateInfo.addEventListener('click', (e) => {
+  document.querySelector('.auto-translate-info').removeAttribute('hidden')
+  e.target.remove()
+})
+
 chrome.storage.sync.get({
   translateFrom: 'auto',
   translateTo: 'en',
   translateLabel: 'View Translation',
-  translateRegex: ''
+  translateRegex: '',
+  autoTranslate: false
 }, (e) => {
   document.querySelector(`#from-${e.translateFrom}`).selected = true
   document.querySelector(`#to-${e.translateTo}`).selected = true
   translateLabel.value = e.translateLabel
   translateRegex.value = e.translateRegex
+  autoTranslateToggle.checked = e.autoTranslate
 })
 

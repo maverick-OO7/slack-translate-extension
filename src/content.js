@@ -6,29 +6,48 @@ const translateLogo = `
 `
 let translateConfig = {}
 
-const sgtTranslateMessage = (e) => {
-  const sourceText = encodeURIComponent(e.target.dataset.translateMessage)
+const sgtTranslateMessage = (sourceText, targetElement, isAutoTranslate = false) => {
+  const encodedText = encodeURIComponent(sourceText)
   const fromLang = translateConfig.translateFrom
   const toLang = translateConfig.translateTo
   const baseUrl = 'https://translate.googleapis.com/translate_a/single'
-  const url = `${baseUrl}?client=gtx&sl=${fromLang}&tl=${toLang}&dt=t&q=${sourceText}`
+  const url = `${baseUrl}?client=gtx&sl=${fromLang}&tl=${toLang}&dt=t&q=${encodedText}`
+  
+  // Show loading state for auto-translate
+  if (isAutoTranslate) {
+    targetElement.innerHTML = '<em style="opacity: 0.7; font-style: italic;">Translating...</em>'
+  }
+  
   fetch(url).then((response) => {
     response.json()
       .then(data => {
         const translatedText = data[0].map(e => e[0]).join(' ')
         const formattedTranslatedText = translatedText.replace('♣ ♣', '♣').replace(/♣{1,}/g, '\n').replace(/^\n/, '').replace(/\n$/, '')
-        e.target.textContent = formattedTranslatedText
-        e.target.dataset.translateDone = true
+        targetElement.textContent = formattedTranslatedText
+        
+        targetElement.dataset.translateDone = true
+        
+        // Add Google Translate attribution
         const translateAttribution = document.createElement('a')
         translateAttribution.className = '___sgt-translate-attribution'
         translateAttribution.href = 'https://translate.google.com/'
         translateAttribution.target = '_blank'
         translateAttribution.rel = 'noopener noreferrer'
         translateAttribution.innerHTML = translateLogo
-        e.target.appendChild(translateAttribution)
-        e.target.dataset.translateMessage = ''
+        targetElement.appendChild(translateAttribution)
       })
-    })
+      .catch(error => {
+        console.error('Translation error:', error)
+        if (isAutoTranslate) {
+          targetElement.innerHTML = '<em style="opacity: 0.7; color: #d32f2f;">Translation failed</em>'
+        }
+      })
+  }).catch(error => {
+    console.error('Translation request failed:', error)
+    if (isAutoTranslate) {
+      targetElement.innerHTML = '<em style="opacity: 0.7; color: #d32f2f;">Translation failed</em>'
+    }
+  })
 }
 
 const init = (eleName) => {
@@ -55,17 +74,35 @@ const init = (eleName) => {
         const regex = new RegExp(match[1], match[2])
         if (!regex.test(messageEle.textContent)) return
       } catch (e) {}
-      const translateButton = document.createElement('div')
-      translateButton.className = '___sgt-translate-button'
+      
       const translateMessage = messageEle.innerHTML.replace(/(<([^>]+)>)/ig, '♣').replace(/♣{1,}/g, '♣').replace('♣ ♣', '♣')
-      translateButton.dataset.translateMessage = translateMessage
-      translateButton.addEventListener('click', (e) => {
-        sgtTranslateMessage(e)
-      }, {
-        once: true
-      })
-      translateButton.textContent = translateConfig.translateLabel || 'View Translation'
-      message.appendChild(translateButton)
+      
+      if (translateConfig.autoTranslate) {
+        // Auto-translate mode: create translation container and translate immediately
+        const translateContainer = document.createElement('div')
+        translateContainer.className = '___sgt-translate-container'
+        translateContainer.style.cssText = `
+          margin: 4px 0;
+          padding: 8px;
+          background-color: rgba(var(--sk_primary_foreground,29,28,29),0.05);
+          border-radius: 4px;
+          border-left: 3px solid rgba(var(--sk_primary_foreground,29,28,29),0.3);
+        `
+        message.appendChild(translateContainer)
+        sgtTranslateMessage(translateMessage, translateContainer, true)
+      } else {
+        // Manual translate mode: show click button
+        const translateButton = document.createElement('div')
+        translateButton.className = '___sgt-translate-button'
+        translateButton.dataset.translateMessage = translateMessage
+        translateButton.addEventListener('click', (e) => {
+          sgtTranslateMessage(e.target.dataset.translateMessage, e.target, false)
+        }, {
+          once: true
+        })
+        translateButton.textContent = translateConfig.translateLabel || 'View Translation'
+        message.appendChild(translateButton)
+      }
     })
   })
   const observerConfig = {
@@ -79,7 +116,8 @@ chrome.storage.sync.get({
   translateFrom: 'auto',
   translateTo: 'en',
   translateLabel: 'View Translation',
-  translateRegex: false
+  translateRegex: false,
+  autoTranslate: false
 }, (e) => {
   translateConfig = e
   init('.p-workspace__primary_view_body')

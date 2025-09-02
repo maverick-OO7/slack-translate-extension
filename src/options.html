@@ -22,6 +22,22 @@
           <div class="flex">Translate To</div>
           <select name="translate-to" id="translate-to-dropdown"></select>
         </div>
+        <div class="card-row">
+          <div class="flex">
+            <span>Auto-translate messages</span>
+            <span class="learn-more" id="show-auto-translate-info"><br />Learn more</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="auto-translate-toggle">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="auto-translate-info" hidden>
+          <div class="title"><b>Auto-translate Mode:</b></div>
+          <div>• <strong>Enabled:</strong> Messages are automatically translated when they appear</div>
+          <div>• <strong>Disabled:</strong> Shows a "View Translation" button that you can click to translate</div>
+          <div>• Auto-translate shows both original and translated text for better context</div>
+        </div>
       </div>
     </div>
     <div class="section">
@@ -68,7 +84,7 @@
           <img src="./icons/48.png">
           <div>
             <div>Translate for Slack</div>
-            <div class="version">Version 1.0.6</div>
+            <div class="version">Version 1.1.0</div>
           </div>
         </div>
         <a
